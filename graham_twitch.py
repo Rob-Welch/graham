@@ -3,7 +3,7 @@ import os # for importing env vars for the bot to use
 import sys
 from twitchio.ext import commands
 
-help_msg = "Learn how to use me at https://www.twitch.tv/golden_graham_bot/about"
+help_msg = "Hello, I\'m Graham. I like cars and car accessories. I can talk and also use memes, replacing the need for other surviving humans. Learn how to use me at https://raw.githubusercontent.com/RSN-Bran/graham/master/graham_help.txt"
 
 graham = call_response.call_response(help_msg=help_msg, decay_in=50)
 
