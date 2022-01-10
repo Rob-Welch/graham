@@ -13,7 +13,7 @@ class Bot(commands.Bot):
         # Initialise our Bot with our access token, prefix and a list of channels to join on boot...
         # prefix can be a callable, which returns a list of strings or a string...
         # initial_channels can also be a callable which returns a list of strings...
-        super().__init__(token=os.environ['TMI_TOKEN'], prefix='~', initial_channels=sys.argv[1].split(','))
+        super().__init__(token=sys.argv[1], prefix='~', initial_channels=sys.argv[2].split(','))
 
     async def event_ready(self):
         # Notify us when everything is ready!
@@ -46,7 +46,5 @@ class Bot(commands.Bot):
         await ctx.send("Learn to use me at https://www.twitch.tv/golden_graham_bot/about")
 
 if __name__ == "__main__":
-    print(sys.argv[1])
-
     bot = Bot()
     bot.run()
