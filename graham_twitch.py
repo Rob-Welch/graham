@@ -13,7 +13,11 @@ class Bot(commands.Bot):
         # Initialise our Bot with our access token, prefix and a list of channels to join on boot...
         # prefix can be a callable, which returns a list of strings or a string...
         # initial_channels can also be a callable which returns a list of strings...
-        super().__init__(token=sys.argv[1], prefix='~', initial_channels=sys.argv[2].split(','))
+
+        if os.environ.get("Token") == True and os.environ.get("Channels") == True:
+            super().__init__(token=os.environ["Token"], prefix='~', initial_channels=os.environ["Channels"].split(','))
+        else:
+            super().__init__(token=sys.argv[1], prefix='~', initial_channels=sys.argv[2].split(','))
 
     async def event_ready(self):
         # Notify us when everything is ready!
@@ -24,9 +28,6 @@ class Bot(commands.Bot):
 
         if message.echo:
             return
-
-        #if message.content == "~help":
-        #    return
 
         if(not message.channel):
             response = graham.parse(message.content, "")
