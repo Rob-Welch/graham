@@ -181,7 +181,7 @@ class call_response:
             
             for module in self.modules:
                 if message.split(" ")[0] == "~"+module.add_response_syntax:
-                    call, response, = module.add_response( '"'.join(message.split('"')[:-2] ) )
+                    call, response, = module.add_response( '"'.join(message.split('"')[:-1] ) )
                     if module.__name__ not in self.index[server]:
                         self.index[server][module.__name__] = {}
                     self.index[server][module.__name__][call] = response
