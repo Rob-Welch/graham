@@ -166,6 +166,8 @@ class call_response:
 
             if server not in self.index.keys(): # create new server
                 self.index[server] = {"respond":{}, "permute":{}, "generate":{}}
+                for module in self.modules:
+                    self.index[server][module.add_response_syntax.split("-")[1]] = {}
 
             if message.split(" ")[0] == "~graham-respond":
                 self.index[server]["respond"][stripgrammar(message.split('"')[1])] = message.split('"')[3]
