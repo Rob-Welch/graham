@@ -77,27 +77,12 @@ class call_response:
         if server not in self.index.keys():
             return ""
 
-        split_msg = process_text.stripgrammar(message) # ignore grammar
-
-        # first priority: permutations
-        for original, replacement in self.index[server]["permute"].items():
-            # if original in split_msg:
-            if set(process_text.stripgrammar(original)).issubset(set(split_msg)):
-                if replacement not in split_msg:
-                    self.decay_response(server,"permute",original)
-                    return message.lower().replace(original, replacement)
-
-        # second priority: call/response
-        for call, response in self.index[server]["respond"].items():
-            #if call in split_msg:
-            if set(process_text.stripgrammar(call)).issubset(set(split_msg)):
-                self.decay_response(server,"respond",call)
-                return response
-
+        split_msg = process_text.stripgrammar(message).split(" ") # ignore grammar
+        
         # final: custom graham modules
         for module in self.modules:
             for call, response in self.index[server][module.__name__].items():
-                if set(process_text.stripgrammar(call)).issubset(set(split_msg)):
+                if set(process_text.stripgrammar(call).split(" ")).issubset(set(split_msg)):
                     self.decay_response(server,module.__name__,call)
                     return module.get_response(message.lower(), call, response)
             
@@ -159,14 +144,6 @@ class call_response:
                 self.index[server] = {"respond":{}, "permute":{}, "generate":{}}
                 for module in self.modules:
                     self.index[server][module.add_response_syntax.split("-")[1]] = {}
-
-            if message.split(" ")[0] == "~graham-respond":
-                self.index[server]["respond"][process_text.stripgrammar(message.split('"')[1])] = message.split('"')[3]
-                return_msg = "added reponse :)"
-
-            if message.split(" ")[0] == "~graham-permute":
-                self.index[server]["permute"][process_text.stripgrammar(message.split('"')[1])] = message.split('"')[3]
-                return_msg = "added pemute"
             
             for module in self.modules:
                 if message.split(" ")[0] == "~"+module.add_response_syntax:

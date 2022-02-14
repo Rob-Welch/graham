@@ -36,3 +36,11 @@ Once Graham is running, add him to a server, giving him permission to read messa
 ## Other stuff
 
 AGPL version 3. Send me your pull requests. `graham_discord.py` provides a discord version of graham, although you can write a Graham bot for any chat client by creating an instance of `call_response`, as defined in `call_response.py`, and sending messages to it.
+
+## Credits
+
+* Discord interface and permute/reply/generate/concatenate modules developed by Rob Welch
+* Twitch.tv interface and rodney module developed by Brandon Sultana
+
+Please send me your pull requests!
+

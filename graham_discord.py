@@ -12,19 +12,8 @@ import argparse
 parser = argparse.ArgumentParser(description="Graham")
 parser.add_argument("key", action="store", type=str, help="Discord API key")
 
-help_msg = """Hello, I'm Graham. I like cars and car accessories. I can talk and also use memes, replacing the need for other surviving humans.
-
-Here are my primary functions:
-
-~graham-respond - I will respond to one phrase with another phrase. For example: ~graham-respond "come" "and also arrive" "server name"
-~graham-permute - I will replace words with other words. For example: ~graham-permute "egg" "dippy egg" "server name"
-
-You must send these commands to me in private. When you DM me, just add the name of the discord server you want them to be active on as a final parameter, e.g.
-
-~graham-permute "gla" "graham likes automobiles" "graham's car discord"
-
-Thank you for using Graham. Send your bug reports to the trash, I am perfect. See Graham's source code at https://github.com/Rob-Welch/graham
-"""
+with open ("graham_help.txt", "r") as file:
+    help_msg = file.readlines()
 
 client = discord.Client()
 
