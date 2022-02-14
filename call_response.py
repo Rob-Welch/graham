@@ -14,13 +14,14 @@ usage:
 
 import os
 import json
-import randomise_response
 import random
 import modules as load_module
+import process_text
 
 class call_response:
 
-    def __init__(self, profile_path="call_response_index.json", decay_in=100, help_msg=""):
+    def __init__(self, profile_path="call_response_index.json", decay_in=100,
+                 help_msg=""):
         """
         Will load in call_response_index.json if it exists. Otherwise it
         initialises an empty call response index. The index file is only saved
@@ -76,13 +77,12 @@ class call_response:
         if server not in self.index.keys():
             return ""
 
-        stripgrammar = lambda string: string.lower().replace(",", "").replace(".", "").replace(":", "").replace("... ", "").replace("'", "").split(" ")
-        split_msg = stripgrammar(message) # ignore grammar
+        split_msg = process_text.stripgrammar(message) # ignore grammar
 
         # first priority: permutations
         for original, replacement in self.index[server]["permute"].items():
             # if original in split_msg:
-            if set(stripgrammar(original)).issubset(set(split_msg)):
+            if set(process_text.stripgrammar(original)).issubset(set(split_msg)):
                 if replacement not in split_msg:
                     self.decay_response(server,"permute",original)
                     return message.lower().replace(original, replacement)
@@ -90,21 +90,14 @@ class call_response:
         # second priority: call/response
         for call, response in self.index[server]["respond"].items():
             #if call in split_msg:
-            if set(stripgrammar(call)).issubset(set(split_msg)):
+            if set(process_text.stripgrammar(call)).issubset(set(split_msg)):
                 self.decay_response(server,"respond",call)
                 return response
-
-        # randomize
-        for call, response in self.index[server]["generate"].items():
-            #if call in split_msg:
-            if set(stripgrammar(call)).issubset(set(split_msg)):
-                self.decay_response(server,"generate",call)
-                return randomise_response.respond_random(response)
 
         # final: custom graham modules
         for module in self.modules:
             for call, response in self.index[server][module.__name__].items():
-                if set(stripgrammar(call)).issubset(set(split_msg)):
+                if set(process_text.stripgrammar(call)).issubset(set(split_msg)):
                     self.decay_response(server,module.__name__,call)
                     return module.get_response(message.lower(), call, response)
             
@@ -145,8 +138,6 @@ class call_response:
         if message.split(" ")[0] == "~graham-help":
             return 'Curent server name: "'+server+'"\n\n'+self.help_msg
 
-        stripgrammar = lambda string: string.lower().replace(",", "").replace(".", "").replace(":", "").replace("... ", "")
-
         # handle errors
         num_delimiters = 4
 
@@ -157,7 +148,7 @@ class call_response:
         if message.count('"') != num_delimiters and not message.startswith("~graham-help"):
             return 'Error: got too many " marks or " in the wrong place. Note: as " are part of the graham syntax, they are forbidden in messages.'
 
-        if len(stripgrammar(message.split('"')[1])) < 3:
+        if len(process_text.stripgrammar(message.split('"')[1])) < 3:
             return "Error: call phrase is less than three characters long. Make it longer!"
 
         #formulate response
@@ -170,16 +161,12 @@ class call_response:
                     self.index[server][module.add_response_syntax.split("-")[1]] = {}
 
             if message.split(" ")[0] == "~graham-respond":
-                self.index[server]["respond"][stripgrammar(message.split('"')[1])] = message.split('"')[3]
+                self.index[server]["respond"][process_text.stripgrammar(message.split('"')[1])] = message.split('"')[3]
                 return_msg = "added reponse :)"
 
             if message.split(" ")[0] == "~graham-permute":
-                self.index[server]["permute"][stripgrammar(message.split('"')[1])] = message.split('"')[3]
+                self.index[server]["permute"][process_text.stripgrammar(message.split('"')[1])] = message.split('"')[3]
                 return_msg = "added pemute"
-
-            if message.split(" ")[0] == "~graham-generate":
-                self.index[server]["generate"][stripgrammar(message.split('"')[1])] = randomise_response.create_random(message.split('"')[3])
-                return_msg = "added generte"
             
             for module in self.modules:
                 if message.split(" ")[0] == "~"+module.add_response_syntax:

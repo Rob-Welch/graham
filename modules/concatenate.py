@@ -1,4 +1,6 @@
-stripgrammar = lambda string: string.lower().replace(",", "").replace(".", "").replace(":", "")
+import sys
+sys.path.insert(0,'..')
+import process_text
 
 """
 This is an example module for graham. It concatenates words together. So,
@@ -26,7 +28,7 @@ it, it won't set graham into 'add' mode. It returns two values,
     
     response: how graham's response is stored. This can be anything, as long
     as it's serializable into json. The buillt-in graham modules use some
-    combinations of strings and lists of strings. This is 
+    combinations of strings and lists of strings.
     
 get_response has three parameters - message, call and response.
 
@@ -54,7 +56,7 @@ return_msg = "concatenated"
 
 def add_response(input_str):
     
-    call = stripgrammar(input_str.split('"')[1])
+    call = process_text.stripgrammar(input_str.split('"')[1])
     response = ""
     
     return call, response
@@ -85,7 +87,7 @@ def splice_word(message, call):
     
     # check if word is in message
     word_index = -1
-    message_stripped = stripgrammar(message).split(" ")
+    message_stripped = process_text.stripgrammar(message).split(" ")
     for word in range(len(message_stripped)):
         if message_stripped[word] == call:
             word_index = word
