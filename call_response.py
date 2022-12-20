@@ -17,11 +17,12 @@ import json
 import random
 import modules as load_module
 import process_text
+import meta
 
 class call_response:
 
-    def __init__(self, profile_path="call_response_index.json", decay_in=100,
-                 help_msg=""):
+    def __init__(self, profile_path="call_response_index.json", decay_in=50,
+                 help_msg="", gdpr_expiry=31536000):
         """
         Will load in call_response_index.json if it exists. Otherwise it
         initialises an empty call response index. The index file is only saved
@@ -32,11 +33,14 @@ class call_response:
             self.index = json.load(open(profile_path, "r"))
         else:
             self.index = {}
+            self.index["_settings"] = {}
+            self.index["_settings"]["last-cleanup"] = int(meta.time.time())
 
         self.decay_in = decay_in
         self.help_msg=help_msg
         self.profile_path = profile_path
         self.modules = load_module.load()
+        self.gdpr_expiry = gdpr_expiry
         
         if len(self.modules) > 0:
             self.help_msg += ("\nCommands from modules:")
@@ -47,7 +51,7 @@ class call_response:
                     self.help_msg += ("\nModule "+module.__name__+"has no help string!")
         
 
-    def parse(self, message, server):
+    def parse(self, message, server, username=None):
         """
         If you've created an instance of call_response, use this method to
         talk to it. It will return an appropriate response, or an empty string
@@ -57,6 +61,11 @@ class call_response:
             server - a string identifying the server the message is from
         """
         response = ""
+        
+        ignore = self.ignore(message, username)
+        if ignore:
+            return response
+        
         if message.startswith("~"):
             response = self.add_response(message, server)
         else:
@@ -82,6 +91,7 @@ class call_response:
         # final: custom graham modules
         for module in self.modules:
             for call, response in self.index[server][module.__name__].items():
+                response = meta.strip_metadata(response)
                 if set(process_text.stripgrammar(call).split(" ")).issubset(set(split_msg)):
                     self.decay_response(server,module.__name__,call)
                     return module.get_response(message.lower(), call, response)
@@ -150,7 +160,7 @@ class call_response:
                     call, response, = module.add_response( '"'.join(message.split('"')[:-1] ) )
                     if module.__name__ not in self.index[server]:
                         self.index[server][module.__name__] = {}
-                    self.index[server][module.__name__][call] = response
+                    self.index[server][module.__name__][call] = meta.add_metadata(response)
                     return_msg = module.return_msg
                 
         except Exception as e:
@@ -161,3 +171,29 @@ class call_response:
             json.dump(self.index, write_file)
 
         return return_msg
+    
+    def tidy(self):
+        if meta.time.time() > int(self.index["_settings"]["last-cleanup"]) + 60*60:
+            for servername, server in self.index.items():
+                for modulename, module in server.items():
+                    for entryname, entry in module.items():
+                        if "date" in entry:
+                            if int(entry.date)+self.gdpr_expiry > meta.time.time():
+                                del self.index[servername][modulename][entryname]
+                                with open(self.profile_path, "w") as write_file:
+                                    json.dump(self.index, write_file)
+            self.index["_settings"]["last-cleanup"] = int(meta.time.time())
+
+    def ignore(self, message, user):
+        ignored = False
+        if message.split(" ")[0] == "~graham-ignore":
+            if "ignored-users" not in self.index["_settings"]:
+                self.index["_settings"]["ignored-users"] = []
+            ignored = True
+            self.index["_settings"]["ignored-users"].append(user)
+            with open(self.profile_path, "w") as write_file:
+                json.dump(self.index, write_file)
+        else:
+            if user in self.index["_settings"]["ignored-users"]:
+                ignored = True
+        return ignored

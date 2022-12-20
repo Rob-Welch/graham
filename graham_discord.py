@@ -38,7 +38,7 @@ async def on_message(message):
     if message.guild is not None:
         server = message.guild.name
     
-    response = graham.parse(message.content, server)
+    response = graham.parse(message.content, server, username=message.author.id)
     
     if response != "":
         await message.channel.send(response)
