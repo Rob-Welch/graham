@@ -10,14 +10,16 @@ import call_response
 import argparse
 
 parser = argparse.ArgumentParser(description="Graham")
-parser.add_argument("key", action="store", type=str, help="Discord API key")
+parser.add_argument("apikey", action="store", type=str, help="Discord API key")
+parser.add_argument("cryptokey", action="store", type=str, help="Encryption key")
+args = parser.parse_args()
 
 with open ("graham_help.txt", "r") as file:
     help_msg = file.readlines()
 
 client = discord.Client()
 
-graham = call_response.call_response(help_msg=help_msg, decay_in=50)
+graham = call_response.call_response(help_msg=help_msg, decay_in=50, cryptokey=args.cryptokey)
 
 @client.event
 async def on_message(message):
@@ -44,5 +46,4 @@ async def on_message(message):
         await message.channel.send(response)
 
 if __name__ == "__main__":
-    args = parser.parse_args()
     client.run(args.key)

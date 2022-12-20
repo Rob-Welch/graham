@@ -18,19 +18,29 @@ import random
 import modules as load_module
 import process_text
 import meta
+from cryptography.fernet import Fernet
+import base64, hashlib
 
 class call_response:
 
     def __init__(self, profile_path="call_response_index.json", decay_in=50,
-                 help_msg="", gdpr_expiry=31536000):
+                 help_msg="", gdpr_expiry=31536000, cryptokey=None):
         """
         Will load in call_response_index.json if it exists. Otherwise it
         initialises an empty call response index. The index file is only saved
         when an entry is added to it (see self.add_response).
         """
+        
+        hlib = hashlib.md5()
+        hlib.update(cryptokey.encode("utf-8"))
+        cryptokey = base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
+        self.fernet = Fernet(cryptokey)
 
         if os.path.exists(profile_path):
-            self.index = json.load(open(profile_path, "r"))
+            with open(profile_path, "rb") as file:
+                contents = file.read()
+                contents = self.fernet.decrypt(contents)
+                self.index = json.loads(contents)
         else:
             self.index = {}
             self.index["_settings"] = {}
@@ -50,6 +60,11 @@ class call_response:
                 except:
                     self.help_msg += ("\nModule "+module.__name__+"has no help string!")
         
+    def export(self):
+        with open(self.profile_path, "wb") as write_file:
+            encrypted = self.fernet.encrypt(json.dumps(self.index).encode("utf-8"))
+            write_file.write(encrypted)
+
 
     def parse(self, message, server, username=None):
         """
@@ -110,9 +125,7 @@ class call_response:
         rand_decay = random.randint(0, self.decay_in)
         if rand_decay == 0:
             del self.index[server][category][entry]
-            with open(self.profile_path, "w") as write_file:
-                json.dump(self.index, write_file)
-
+            self.export()
 
     def add_response(self, message, server):
         '''
@@ -167,8 +180,7 @@ class call_response:
             return "could not parse request. errror: "+repr((e))
 
         #update index on hdd
-        with open(self.profile_path, "w") as write_file:
-            json.dump(self.index, write_file)
+        self.export()
 
         return return_msg
     
@@ -180,19 +192,17 @@ class call_response:
                         if "date" in entry:
                             if int(entry.date)+self.gdpr_expiry > meta.time.time():
                                 del self.index[servername][modulename][entryname]
-                                with open(self.profile_path, "w") as write_file:
-                                    json.dump(self.index, write_file)
+                                self.export()
             self.index["_settings"]["last-cleanup"] = int(meta.time.time())
 
     def ignore(self, message, user):
         ignored = False
+        if "ignored-users" not in self.index["_settings"]:
+            self.index["_settings"]["ignored-users"] = []
         if message.split(" ")[0] == "~graham-ignore":
-            if "ignored-users" not in self.index["_settings"]:
-                self.index["_settings"]["ignored-users"] = []
             ignored = True
             self.index["_settings"]["ignored-users"].append(user)
-            with open(self.profile_path, "w") as write_file:
-                json.dump(self.index, write_file)
+            self.export()
         else:
             if user in self.index["_settings"]["ignored-users"]:
                 ignored = True
