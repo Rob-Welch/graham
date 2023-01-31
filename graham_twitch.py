@@ -1,11 +1,14 @@
 import call_response
 import os # for importing env vars for the bot to use
 import sys
+from dotenv import load_dotenv
 from twitchio.ext import commands
 
 help_msg = "Hello, I\'m Graham. I like cars and car accessories. I can talk and also use memes, replacing the need for other surviving humans. Learn how to use me at https://raw.githubusercontent.com/RSN-Bran/graham/master/graham_help.txt"
 
 graham = call_response.call_response(help_msg=help_msg, decay_in=50)
+
+load_dotenv()
 
 class Bot(commands.Bot):
 
@@ -13,6 +16,7 @@ class Bot(commands.Bot):
         # Initialise our Bot with our access token, prefix and a list of channels to join on boot...
         # prefix can be a callable, which returns a list of strings or a string...
         # initial_channels can also be a callable which returns a list of strings...
+
 
         if "Token" in os.environ and "Channels" in os.environ:
             super().__init__(token=os.environ["Token"], prefix='~', initial_channels=os.environ["Channels"].split(','))

@@ -31,15 +31,17 @@ class call_response:
         when an entry is added to it (see self.add_response).
         """
         
-        hlib = hashlib.md5()
-        hlib.update(cryptokey.encode("utf-8"))
-        cryptokey = base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
-        self.fernet = Fernet(cryptokey)
+        if cryptokey is not None:
+            hlib = hashlib.md5()
+            hlib.update(cryptokey.encode("utf-8"))
+            cryptokey = base64.urlsafe_b64encode(hlib.hexdigest().encode('latin-1'))
+            self.fernet = Fernet(cryptokey)
 
         if os.path.exists(profile_path):
             with open(profile_path, "rb") as file:
                 contents = file.read()
-                contents = self.fernet.decrypt(contents)
+                if cryptokey is not None:
+                    contents = self.fernet.decrypt(contents)
                 self.index = json.loads(contents)
         else:
             self.index = {}
@@ -62,7 +64,10 @@ class call_response:
         
     def export(self):
         with open(self.profile_path, "wb") as write_file:
-            encrypted = self.fernet.encrypt(json.dumps(self.index).encode("utf-8"))
+            try:
+                encrypted = self.fernet.encrypt(json.dumps(self.index).encode("utf-8"))
+            except: 
+                encrypted = json.dumps(self.index).encode("utf-8")
             write_file.write(encrypted)
 
 
