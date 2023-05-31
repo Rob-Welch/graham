@@ -3,7 +3,13 @@ A programmable bot that makes bad conversation
 
 Graham is a chatbot whose sole purpose it to respond to certain inputs with canned phrases. Once Graham has been added to your server, any users of that server can program him via DM. He can respond to phrases with other phrases, replace phrases with other phrases, and say things at random, picked from a pool.
 
-## How to set up Graham on Discord
+* [To add Graham to your Discord server, use this link!](https://discordapp.com/api/oauth2/authorize?client_id=599390274946596877&permissions=3072&scope=bot)
+
+## How to use Graham
+
+Once Graham is in your server, write a message in the server that says `~graham-help`. He'll display a help message.
+
+## How to run your own Graham instance on Discord
 
 Requirements:
 * Python (tested on 3.6.8 or higher)
@@ -15,8 +21,9 @@ Clone this repo and then run graham_discord.py, providing a discord API key as t
 ```bash
 nohup python3 graham_discord.py <key> &
 ```
+Finally, add him to a server, giving him permission to read messages and traverse channels. 
 
-## How to set up Graham on Twitch
+## How to run your own Graham instance on Twitch
 
 Requirements:
 * Python (tested on 3.6.8 or higher)
@@ -28,10 +35,6 @@ Clone this repo and then run graham_twitch.py, providing a Twitch OAuth key as t
 ```bash
 nohup python3 graham_discord.py <key> <channel1>,<channel2>,<channel3>... & 
 ```
-
-## How to use Graham
-
-Once Graham is running, add him to a server, giving him permission to read messages and traverse channels. Then, write a message in the server that says `~graham-help`. This will register your server with Graham, and Graham will display a help message.
 
 ## Other stuff
 
